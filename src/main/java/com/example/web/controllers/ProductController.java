@@ -1,9 +1,10 @@
 package com.example.web.controllers;
 
+import com.example.web.dto.APIResponse;
 import com.example.web.models.Product;
-import com.example.web.repository.ProductDAO;
+import com.example.web.services.ProductServices;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,25 +14,32 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
-    private ProductDAO productDAO;
+    private ProductServices productServices;
 
-    @PostMapping()
+    @GetMapping
+    public APIResponse<List<Product>> getProducts() {
+        List<Product> allProducts = productServices.findAllProducts();
+        return new APIResponse<>(allProducts.size(), allProducts);
+    }
+
+    @PostMapping
     public Product saveProduct(@RequestBody Product product) {
-        return productDAO.save(product);
+        return productServices.saveProduct(product);
     }
 
-    @GetMapping()
-    public List<Product> getAllProduct() {
-        return productDAO.findAll();
+    @GetMapping("/sorting/{field}")
+    public APIResponse<List<Product>> getProductsWithSort(@PathVariable String field) {
+        List<Product> allProducts = productServices.findProductsWithSorting(field);
+        return new APIResponse<>(allProducts.size(), allProducts);
     }
 
-    @GetMapping("/{id}")
-    public Product getProductById(@PathVariable int id) {
-        return productDAO.findProductById(id);
+    @GetMapping("/pagination/{page}/{size}")
+    public Page<Product> getProductsWithPagination(@PathVariable int page, @PathVariable int size) {
+        return productServices.getProductsWithPagination(page, size);
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteProductById(@PathVariable int id) {
-        return productDAO.deleteProduct(id);
+    @GetMapping("/paginationwithsort/{page}/{size}/{field}")
+    public Page<Product> getProductsWithPaginationWithSort(@PathVariable int page, @PathVariable int size, @PathVariable String field) {
+        return productServices.getProductsWithPaginationWithSort(page, size, field);
     }
 }
